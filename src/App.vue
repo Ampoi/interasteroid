@@ -30,13 +30,10 @@ const rocket: {
     bodyParts: {
         heart: {
             type: "block",
-            position: {
-                x: 0,
-                y: 0
-            },
             health: 100,
             layer: 0,
-            connectedToTileID: "rocket"
+            connectedToTileID: "rocket",
+            position: {x: 0, y: 0}
         }
     }
 }
@@ -44,7 +41,7 @@ const rocket: {
 const size = 40
 
 function drawPart(p: p5, type: PartType, position: Vector, rotate: number, layer: number ){
-    p.translate(position.x, position.y)
+    p.translate(position.x*size, position.y*size)
     p.strokeWeight(2)
 
     if( type == "battery" ){
@@ -79,10 +76,84 @@ function drawPart(p: p5, type: PartType, position: Vector, rotate: number, layer
     p.fill(0)
     p.text(layer, 0, 0)
     
-    p.translate(-position.x, -position.y)
+    p.translate(-position.x*size, -position.y*size)
+}
+
+function drawRelatedParts(p: p5, parentPosition: Vector, partID: string, parentPart: Part){
+    const part = rocket.bodyParts[partID]
+    const newPosition = {
+        x: parentPosition.x + (part.position.x - parentPart.position.x),
+        y: parentPosition.y + (part.position.y - parentPart.position.y)
+    }
+    drawPart(p, part.type, newPosition, 0, part.layer)
+
+    Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
+        if(childPart.connectedToTileID == partID){
+            drawRelatedParts(p, newPosition, childPartID, part)
+        }
+    })
 }
 
 const mousePositionFromCenter: Vector = {x: 0, y: 0}
+
+function getSamePositionParts(position: Vector): [id: string, part: Part][]{
+    return Object.entries(rocket.bodyParts)
+        .filter(([_, part]) => JSON.stringify(part.position) == JSON.stringify(position))
+        .sort(([_a, { layer: layerA }], [_b, { layer: layerB }]) => layerB - layerA)
+}
+
+function addPart(){
+    const id = generateUID()
+    const samePositionTiles = getSamePositionParts(mousePositionFromCenter)
+    const belowTile = samePositionTiles[0]
+    const connectedToTile: {
+        id: string
+        layer: number
+    } | undefined = (() => {
+        if(belowTile) return {
+            id: belowTile[0],
+            layer: belowTile[1].layer + 1
+        }
+
+        const availablePositions = [[0, 1], [1, 0], [-1, 0], [0, -1]]
+        let newConnectedToTile: {id: string, layer: number} | undefined = undefined
+        for(const offset of availablePositions){
+            const connectableTile = Object.entries(rocket.bodyParts)
+                .filter(([_, tile]) => (tile.position.x + offset[0]) == mousePositionFromCenter.x && (tile.position.y + offset[1]) == mousePositionFromCenter.y)
+                .sort(([_a,partA], [_b,partB]) => partB.layer - partA.layer)[0]
+
+            if( connectableTile ){
+                newConnectedToTile = {
+                    id: connectableTile[0],
+                    layer: connectableTile[1].layer
+                }
+                break
+            }
+        }
+
+        if( !newConnectedToTile ) return
+
+        return newConnectedToTile
+    })()
+
+    if( !connectedToTile ) return
+
+    rocket.bodyParts[id] = {
+        layer: connectedToTile.layer,
+        type: selectedItem.value,
+        position: JSON.parse(JSON.stringify(mousePositionFromCenter)),
+        health: 100,
+        connectedToTileID: connectedToTile.id
+    }
+}
+
+function deletePart(event: MouseEvent){
+    event.preventDefault()
+    const samePositionTiles = getSamePositionParts(mousePositionFromCenter)
+    const deleteTileData = samePositionTiles[0]
+    
+    if( deleteTileData && deleteTileData[0] != "heart" ) delete rocket.bodyParts[deleteTileData[0]]
+}
 
 new p5((p: p5) => {
     p.setup = () => {
@@ -96,9 +167,7 @@ new p5((p: p5) => {
         p.background(0)
         p.translate(p.windowWidth/2, p.windowHeight/2)
 
-        Object.entries(rocket.bodyParts).forEach(([_id, part]) =>{
-            drawPart(p, part.type, {x: part.position.x*size, y: part.position.y*size}, 0, part.layer)
-        })
+        drawRelatedParts(p, {x:0, y:0}, "heart", rocket.bodyParts.heart)
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
@@ -110,63 +179,13 @@ new p5((p: p5) => {
         mousePositionFromCenter.y =  Math.round((p.mouseY - p.windowHeight / 2) / size)
     }
 
-    p.mouseClicked = () => {
-        const id = generateUID()
-        const samePositionTiles = Object.entries(rocket.bodyParts).filter(([_, part]) => JSON.stringify(part.position) == JSON.stringify(mousePositionFromCenter)).sort(([_a, { layer: layerA }], [_b, { layer: layerB }]) => layerB - layerA)
-        const belowTile = samePositionTiles[0]
-        const connectedToTile: {
-            id: string
-            layer: number
-        } | undefined = (() => {
-            if(belowTile) return {
-                id: belowTile[0],
-                layer: belowTile[1].layer + 1
-            }
-
-            const availablePositions = [[0, 1], [1, 0], [-1, 0], [0, -1]]
-            let newConnectedToTile: {id: string, layer: number} | undefined = undefined
-            for(const offset of availablePositions){
-                const connectableTile = Object.entries(rocket.bodyParts)
-                    .filter(([_, tile]) => (tile.position.x + offset[0]) == mousePositionFromCenter.x && (tile.position.y + offset[1]) == mousePositionFromCenter.y)
-                    .sort(([_a,partA], [_b,partB]) => partB.layer - partA.layer)[0]
-
-                if( connectableTile ){
-                    newConnectedToTile = {
-                        id: connectableTile[0],
-                        layer: connectableTile[1].layer
-                    }
-                    break
-                }
-            }
-
-            if( !newConnectedToTile ) return
-
-            return newConnectedToTile
-        })()
-
-        if( !connectedToTile ) return
-
-        rocket.bodyParts[id] = {
-            layer: connectedToTile.layer,
-            type: selectedItem.value,
-            position: JSON.parse(JSON.stringify(mousePositionFromCenter)),
-            health: 100,
-            connectedToTileID: connectedToTile.id
-        }
-    }
+    p.mouseClicked = addPart
+    document.oncontextmenu = deletePart
 
     p.keyPressed = (event: KeyboardEvent) => {
         if(["1", "2", "3", "4"].includes(event.key)){
             selectedItemIndex.value =  Number(event.key)-1
         }
-    }
-
-    document.oncontextmenu = (event) => {
-        event.preventDefault()
-        const samePositionTiles = Object.entries(rocket.bodyParts).filter(([_, part]) => JSON.stringify(part.position) == JSON.stringify(mousePositionFromCenter)).sort(([_a, { layer: layerA }], [_b, { layer: layerB }]) => layerB - layerA)
-        const deleteTileData = samePositionTiles[0]
-        
-        if( deleteTileData && deleteTileData[0] != "heart" ) delete rocket.bodyParts[deleteTileData[0]]
     }
 })
 </script>
