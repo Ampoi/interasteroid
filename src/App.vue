@@ -26,7 +26,7 @@ const rocket: {
     angle: number
     bodyParts: { [key: string]: Part }
 } = {
-    angle: 0,
+    angle: Math.PI/8,
     bodyParts: {
         heart: {
             type: "block",
@@ -40,8 +40,9 @@ const rocket: {
 
 const size = 40
 
-function drawPart(p: p5, type: PartType, position: Vector, rotate: number, layer: number ){
+function drawPart(p: p5, type: PartType, position: Vector, angle: number, layer: number ){
     p.translate(position.x*size, position.y*size)
+    p.rotate(angle)
     p.strokeWeight(2)
 
     if( type == "battery" ){
@@ -76,20 +77,23 @@ function drawPart(p: p5, type: PartType, position: Vector, rotate: number, layer
     p.fill(0)
     p.text(layer, 0, 0)
     
+    p.rotate(-angle)
     p.translate(-position.x*size, -position.y*size)
 }
 
-function drawRelatedParts(p: p5, parentPosition: Vector, partID: string, parentPart: Part){
+function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part){
     const part = rocket.bodyParts[partID]
+    const offsetX = part.position.x - parentPart.position.x
+    const offsetY = part.position.y - parentPart.position.y
     const newPosition = {
-        x: parentPosition.x + (part.position.x - parentPart.position.x),
-        y: parentPosition.y + (part.position.y - parentPart.position.y)
+        x: parentPosition.x + offsetY * Math.sin(-parentAngle) + offsetX * Math.cos(-parentAngle),
+        y: parentPosition.y + offsetY * Math.cos(-parentAngle) - offsetX * Math.sin(-parentAngle)
     }
-    drawPart(p, part.type, newPosition, 0, part.layer)
+    drawPart(p, part.type, newPosition, parentAngle, part.layer)
 
     Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
         if(childPart.connectedToTileID == partID){
-            drawRelatedParts(p, newPosition, childPartID, part)
+            drawRelatedParts(p, newPosition, parentAngle, childPartID, part)
         }
     })
 }
@@ -167,7 +171,7 @@ new p5((p: p5) => {
         p.background(0)
         p.translate(p.windowWidth/2, p.windowHeight/2)
 
-        drawRelatedParts(p, {x:0, y:0}, "heart", rocket.bodyParts.heart)
+        drawRelatedParts(p, {x:0, y:0}, rocket.angle, "heart", rocket.bodyParts.heart)
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
