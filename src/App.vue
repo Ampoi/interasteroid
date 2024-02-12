@@ -3,10 +3,9 @@
 </template>
 <script setup lang="ts">
 import p5 from "p5"
+import { Vector } from "p5"
 import { generateUID } from "./utils/uid"
 import { computed, ref } from "vue";
-
-type Vector = Record<"x" | "y", number>
 
 const items = ["block", "motor", "engine", "battery"] as const
 const selectedItemIndex = ref(0)
@@ -26,14 +25,14 @@ const rocket: {
     angle: number
     bodyParts: { [key: string]: Part }
 } = {
-    angle: Math.PI/8,
+    angle: Math.PI/3,
     bodyParts: {
         heart: {
             type: "block",
             health: 100,
             layer: 0,
             connectedToTileID: "rocket",
-            position: {x: 0, y: 0}
+            position: new Vector(0, 0)
         }
     }
 }
@@ -83,12 +82,14 @@ function drawPart(p: p5, type: PartType, position: Vector, angle: number, layer:
 
 function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part){
     const part = rocket.bodyParts[partID]
-    const offsetX = part.position.x - parentPart.position.x
-    const offsetY = part.position.y - parentPart.position.y
-    const newPosition = {
-        x: parentPosition.x + offsetY * Math.sin(-parentAngle) + offsetX * Math.cos(-parentAngle),
-        y: parentPosition.y + offsetY * Math.cos(-parentAngle) - offsetX * Math.sin(-parentAngle)
-    }
+    const offset  = Vector.sub(part.position, parentPart.position)
+    const newPosition = Vector.add(
+        parentPosition,
+        Vector.add(
+            Vector.fromAngle(Math.PI/2 + parentAngle).mult(offset.y),
+            Vector.fromAngle(parentAngle).mult(offset.x)
+        )
+    )
     drawPart(p, part.type, newPosition, parentAngle, part.layer)
 
     Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
@@ -98,7 +99,7 @@ function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, pa
     })
 }
 
-const mousePositionFromCenter: Vector = {x: 0, y: 0}
+const mousePositionFromCenter= new Vector(0, 0)
 
 function getSamePositionParts(position: Vector): [id: string, part: Part][]{
     return Object.entries(rocket.bodyParts)
@@ -145,7 +146,7 @@ function addPart(){
     rocket.bodyParts[id] = {
         layer: connectedToTile.layer,
         type: selectedItem.value,
-        position: JSON.parse(JSON.stringify(mousePositionFromCenter)),
+        position: mousePositionFromCenter.copy(),
         health: 100,
         connectedToTileID: connectedToTile.id
     }
@@ -171,7 +172,7 @@ new p5((p: p5) => {
         p.background(0)
         p.translate(p.windowWidth/2, p.windowHeight/2)
 
-        drawRelatedParts(p, {x:0, y:0}, rocket.angle, "heart", rocket.bodyParts.heart)
+        drawRelatedParts(p, new Vector(0, 0), rocket.angle, "heart", rocket.bodyParts.heart)
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
