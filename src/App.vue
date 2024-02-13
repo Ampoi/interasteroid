@@ -7,6 +7,7 @@ import { generateUID } from "./utils/uid"
 import { computed, ref } from "vue";
 
 import { createPart, partNames, type Part } from "./utils/part"
+import { Wire } from "./utils/wire"
 
 const selectedPartIndex = ref(0)
 const selectedPart = computed(() => partNames[selectedPartIndex.value])
