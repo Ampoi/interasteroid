@@ -1,5 +1,4 @@
 <template>
-    {{ selectedPart }}
 </template>
 <script setup lang="ts">
 import p5 from "p5"
@@ -24,47 +23,6 @@ const rocket: {
 
 const size = 40
 
-function drawPart(p: p5, name: PartName, position: Vector, angle: number, layer: number ){
-    p.translate(position.x*size, position.y*size)
-    p.rotate(angle)
-    p.strokeWeight(2)
-
-    if( name == "Battery" ){
-        p.fill("#00ab55")
-        p.stroke("#004d26")
-    }else{
-        p.fill(200)
-        p.stroke(150)
-    }
-
-
-    if( name == "Engine" ){
-        p.arc(0, size/2, size*4/5, size*5/4, p.PI, 0)
-        p.rect(
-            0, -size/4, size, size/2,
-            size/5, size/5, size/5, size/5
-        )
-    }else{
-        p.square(
-            0, 0, size,
-            size/5, size/5, size/5, size/5
-        )
-    }
-
-    if( name != "Block" ){
-        p.fill(250)
-        p.circle(0, 0, size * 0.7)
-    }
-
-    p.textAlign(p.CENTER)
-    p.noStroke()
-    p.fill(0)
-    p.text(layer, 0, 0)
-    
-    p.rotate(-angle)
-    p.translate(-position.x*size, -position.y*size)
-}
-
 function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part){
     const part = rocket.bodyParts[partID]
     const offset  = Vector.sub(part.position, parentPart.position)
@@ -75,7 +33,7 @@ function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, pa
             Vector.fromAngle(parentAngle).mult(offset.x)
         )
     )
-    drawPart(p, part.name, newPosition, parentAngle, part.layer)
+    part.draw(p, newPosition, parentAngle)
 
     Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
         if(childPart.connectedToTileID == partID){
