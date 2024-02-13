@@ -1,18 +1,21 @@
 import { Vector } from "p5"
 import { Part, PartName, createPart } from "./part"
 import { generateUID } from "./uid"
+import { Wire } from "./wire"
 
 export const rocket: {
     angle: number
     bodyParts: { [key: string]: Part }
+    wires: { [key: string]: Wire }
 } = {
-    angle: Math.PI/4,
+    angle: 0,
     bodyParts: {
         heart: createPart(new Vector(0, 0), 0, "rocket", "Battery")
-    }
+    },
+    wires: {}
 }
 
-function getSamePositionParts(position: Vector): [id: string, part: Part][]{
+export function getSamePositionParts(position: Vector): [id: string, part: Part][]{
     return Object.entries(rocket.bodyParts)
         .filter(([_, part]) => JSON.stringify(part.position) == JSON.stringify(position))
         .sort(([_a, { layer: layerA }], [_b, { layer: layerB }]) => layerB - layerA)
