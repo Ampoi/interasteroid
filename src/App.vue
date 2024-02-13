@@ -22,7 +22,9 @@ const mode = computed(() => modes[modeIndex.value])
 
 const size = 40
 
-function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part){
+let constructedParts: { [key: string]: { position: Vector, angle: number, part: Part } } = {}
+
+function constructParts(p: p5, parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part){
     const part = rocket.bodyParts[partID]
     const offset  = Vector.sub(part.position, parentPart.position)
     const newPosition = Vector.add(
@@ -32,11 +34,16 @@ function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, pa
             Vector.fromAngle(parentAngle).mult(offset.x)
         )
     )
-    part.draw(p, newPosition, parentAngle)
+
+    constructedParts[partID] = {
+        position: newPosition,
+        angle: parentAngle,
+        part
+    }
 
     Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
         if(childPart.connectedToTileID == partID){
-            drawRelatedParts(p, newPosition, parentAngle, childPartID, part)
+            constructParts(p, newPosition, parentAngle, childPartID, part)
         }
     })
 }
@@ -64,7 +71,22 @@ new p5((p: p5) => {
         p.translate(p.windowWidth/2, p.windowHeight/2)
 
         p.textSize(16)
-        drawRelatedParts(p, new Vector(0, 0), rocket.angle, "heart", rocket.bodyParts.heart)
+        constructedParts = {}
+        constructParts(p, new Vector(0, 0), rocket.angle, "heart", rocket.bodyParts.heart)
+        Object.values(constructedParts).forEach(({ position, angle, part }) => {
+            part.draw(p, position, angle)
+        })
+        Object.values(rocket.wires).forEach(({from, to}) => {
+            const { position: fromPosition } = constructedParts[from]
+            const { position: toPosition } = constructedParts[to]
+
+            p.strokeWeight(6)
+            p.stroke(255, 255, 255)
+            p.line(fromPosition.x*size, fromPosition.y*size, toPosition.x*size, toPosition.y*size)
+            p.strokeWeight(4)
+            p.stroke(255, 0, 0)
+            p.line(fromPosition.x*size, fromPosition.y*size, toPosition.x*size, toPosition.y*size)
+        })
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
@@ -74,6 +96,7 @@ new p5((p: p5) => {
     p.mouseMoved = () => updateMousePosition(p)
 
     p.mousePressed = () => {
+        if( mode.value != "wire" ) return
         const samePositionParts = getSamePositionParts(mousePositionFromCenter)
         const clickedPart = samePositionParts[0]
         if( !clickedPart ) return
@@ -82,6 +105,7 @@ new p5((p: p5) => {
     }
 
     p.mouseReleased = () => {
+        if( mode.value != "wire" ) return
         if( stringingWire && wireFrom ){
             updateMousePosition(p)
             const samePositionParts = getSamePositionParts(mousePositionFromCenter)
@@ -89,7 +113,6 @@ new p5((p: p5) => {
             if( clickedPart ){
                 const uid = generateUID()
                 rocket.wires[uid] = new Wire(wireFrom, clickedPart[0])
-                console.log(rocket.wires)
             }
         }
         wireFrom = undefined
