@@ -6,7 +6,7 @@ import { Vector } from "p5"
 import { generateUID } from "./utils/uid"
 import { computed, ref } from "vue";
 
-import { createPart, partNames, type Part, type PartName } from "./utils/part"
+import { createPart, partNames, type Part } from "./utils/part"
 
 const selectedPartIndex = ref(0)
 const selectedPart = computed(() => partNames[selectedPartIndex.value])
@@ -94,12 +94,23 @@ function addPart(){
     }
 }
 
-function deletePart(event: MouseEvent){
+function deletePart(id: string){
+    delete rocket.bodyParts[id]
+    Object.entries(rocket.bodyParts).forEach(([partID, bodyParts]) => {
+        if( bodyParts.connectedToTileID == id ){
+            deletePart(partID)
+        }
+    })
+}
+
+function deleteClickedPart(event: MouseEvent){
     event.preventDefault()
     const samePositionTiles = getSamePositionParts(mousePositionFromCenter)
     const deleteTileData = samePositionTiles[0]
     
-    if( deleteTileData && deleteTileData[0] != "heart" ) delete rocket.bodyParts[deleteTileData[0]]
+    if( deleteTileData && deleteTileData[0] != "heart" ){
+        deletePart(deleteTileData[0])
+    }
 }
 
 new p5((p: p5) => {
@@ -128,7 +139,7 @@ new p5((p: p5) => {
     }
 
     p.mouseClicked = addPart
-    document.oncontextmenu = deletePart
+    document.oncontextmenu = deleteClickedPart
 
     p.keyPressed = (event: KeyboardEvent) => {
         if(["1", "2", "3", "4"].includes(event.key)){
