@@ -15,7 +15,7 @@ const rocket: {
     angle: number
     bodyParts: { [key: string]: Part }
 } = {
-    angle: Math.PI/3,
+    angle: Math.PI/4,
     bodyParts: {
         heart: createPart(new Vector(0, 0), 0, "rocket", "Battery")
     }

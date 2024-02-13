@@ -102,6 +102,8 @@ class Battery extends Part {
         max: 100
     }
     customDrawFunc(p: p5): void {
+        p.fill("#00ab55")
+        p.stroke("#004d26")
         p.square(
             0, 0, size,
             size/5, size/5, size/5, size/5
