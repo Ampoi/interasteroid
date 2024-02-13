@@ -1,5 +1,5 @@
 <template>
-    {{ selectedItem }}
+    {{ selectedPart }}
 </template>
 <script setup lang="ts">
 import p5 from "p5"
@@ -7,19 +7,10 @@ import { Vector } from "p5"
 import { generateUID } from "./utils/uid"
 import { computed, ref } from "vue";
 
-const items = ["block", "motor", "engine", "battery"] as const
-const selectedItemIndex = ref(0)
-const selectedItem = computed(() => items[selectedItemIndex.value])
+import { createPart, partNames, type Part, type PartName } from "./utils/part"
 
-type PartType = typeof items[number]
-
-type Part = {
-    type: PartType
-    position: Vector
-    health: number
-    layer: number
-    connectedToTileID: string
-}
+const selectedPartIndex = ref(0)
+const selectedPart = computed(() => partNames[selectedPartIndex.value])
 
 const rocket: {
     angle: number
@@ -27,24 +18,18 @@ const rocket: {
 } = {
     angle: Math.PI/3,
     bodyParts: {
-        heart: {
-            type: "block",
-            health: 100,
-            layer: 0,
-            connectedToTileID: "rocket",
-            position: new Vector(0, 0)
-        }
+        heart: createPart(new Vector(0, 0), 0, "rocket", "Battery")
     }
 }
 
 const size = 40
 
-function drawPart(p: p5, type: PartType, position: Vector, angle: number, layer: number ){
+function drawPart(p: p5, name: PartName, position: Vector, angle: number, layer: number ){
     p.translate(position.x*size, position.y*size)
     p.rotate(angle)
     p.strokeWeight(2)
 
-    if( type == "battery" ){
+    if( name == "Battery" ){
         p.fill("#00ab55")
         p.stroke("#004d26")
     }else{
@@ -53,7 +38,7 @@ function drawPart(p: p5, type: PartType, position: Vector, angle: number, layer:
     }
 
 
-    if( type == "engine" ){
+    if( name == "Engine" ){
         p.arc(0, size/2, size*4/5, size*5/4, p.PI, 0)
         p.rect(
             0, -size/4, size, size/2,
@@ -66,7 +51,7 @@ function drawPart(p: p5, type: PartType, position: Vector, angle: number, layer:
         )
     }
 
-    if( type != "block" ){
+    if( name != "Block" ){
         p.fill(250)
         p.circle(0, 0, size * 0.7)
     }
@@ -90,7 +75,7 @@ function drawRelatedParts(p: p5, parentPosition: Vector, parentAngle: number, pa
             Vector.fromAngle(parentAngle).mult(offset.x)
         )
     )
-    drawPart(p, part.type, newPosition, parentAngle, part.layer)
+    drawPart(p, part.name, newPosition, parentAngle, part.layer)
 
     Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
         if(childPart.connectedToTileID == partID){
@@ -141,14 +126,13 @@ function addPart(){
         return newConnectedToTile
     })()
 
-    if( !connectedToTile ) return
-
-    rocket.bodyParts[id] = {
-        layer: connectedToTile.layer,
-        type: selectedItem.value,
-        position: mousePositionFromCenter.copy(),
-        health: 100,
-        connectedToTileID: connectedToTile.id
+    if( connectedToTile ){
+        rocket.bodyParts[id] = createPart(
+            mousePositionFromCenter,
+            connectedToTile.layer,
+            connectedToTile.id,
+            selectedPart.value
+        )
     }
 }
 
@@ -180,6 +164,7 @@ new p5((p: p5) => {
     }
     
     p.mouseMoved = () => {
+        console.log("hi!")
         mousePositionFromCenter.x =  Math.round((p.mouseX - p.windowWidth / 2) / size)
         mousePositionFromCenter.y =  Math.round((p.mouseY - p.windowHeight / 2) / size)
     }
@@ -189,7 +174,7 @@ new p5((p: p5) => {
 
     p.keyPressed = (event: KeyboardEvent) => {
         if(["1", "2", "3", "4"].includes(event.key)){
-            selectedItemIndex.value =  Number(event.key)-1
+            selectedPartIndex.value =  Number(event.key)-1
         }
     }
 })
