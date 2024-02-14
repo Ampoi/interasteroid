@@ -24,6 +24,17 @@ export abstract class Part {
         this.connectedToTileID = connectedToTileID
     }
 
+    public chargeBattery(energy: number){
+        if( !this.battery ) throw new Error("バッテリーが存在しないので充電できません！")
+        const newBattery = this.battery.now + energy
+        this.battery.now = newBattery > this.battery.max ? this.battery.max : newBattery
+    }
+
+    public useBattery(energy: number){
+        if( !this.battery ) throw new Error("バッテリーが存在しないので使用できません！")
+        const newBattery = this.battery.now - energy
+        this.battery.now = newBattery < 0 ? 0 : newBattery
+    }
 
     draw(p: p5, position: Vector, angle: number){
         p.translate(position.x*size, position.y*size)
@@ -103,7 +114,7 @@ class Battery extends Part {
     readonly health = 100
     readonly maxBattery = 500
     readonly battery = {
-        now: 0,
+        now: 500,
         max: 500
     }
     customDrawFunc(p: p5): void {

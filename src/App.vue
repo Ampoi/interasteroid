@@ -73,11 +73,13 @@ new p5((p: p5) => {
         p.textSize(16)
         constructedParts = {}
         constructParts(p, new Vector(0, 0), rocket.angle, "heart", rocket.bodyParts.heart)
+        
         Object.values(constructedParts).forEach(({ position, angle, part }) => {
             part.draw(p, position, angle)
         })
         Object.values(rocket.wires).forEach((wire) => {
             wire.draw(p, constructedParts)
+            wire.energize()
         })
 
         p.fill(0, 255, 255, 80)

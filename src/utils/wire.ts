@@ -1,11 +1,13 @@
 import p5, { Vector } from "p5"
 import { Part } from "./part"
+import { rocket } from "./main"
 
 const size = 40
 
 export class Wire {
     readonly to: string
     readonly from: string
+    readonly energizeLimit = 5
 
     constructor(from: string, to: string){
         this.to = to
@@ -33,5 +35,24 @@ export class Wire {
         p.circle(from.x * size + markVector.x, from.y * size + markVector.y, 6)
         p.fill("#ff9500")
         p.circle(to.x * size - markVector.x, to.y * size - markVector.y, 6)
+    }
+
+    energize(){
+        const from = rocket.bodyParts[this.from]
+        const to = rocket.bodyParts[this.to]
+
+        const wireToAmount = Object.values(rocket.wires).filter(wire => wire.to == this.to).length
+        if( !from.battery ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
+        if( !to.battery ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
+        const toPartNeededEnergy = to.battery.max - to.battery.now
+        const toPartNeededEnergyPerWire = toPartNeededEnergy / wireToAmount
+        const transportEnergy = Math.min(
+            toPartNeededEnergyPerWire,
+            this.energizeLimit,
+            from.battery.now
+        )
+        
+        from.useBattery(transportEnergy)
+        to.chargeBattery(transportEnergy)
     }
 }
