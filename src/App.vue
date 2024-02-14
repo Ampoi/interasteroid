@@ -76,6 +76,7 @@ new p5((p: p5) => {
         
         Object.values(constructedParts).forEach(({ position, angle, part }) => {
             part.draw(p, position, angle)
+            if( part.action ) part.action()
         })
         Object.values(rocket.wires).forEach((wire) => {
             wire.draw(p, constructedParts)

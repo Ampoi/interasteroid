@@ -14,6 +14,8 @@ export abstract class Part {
     } | undefined
     abstract customDrawFunc(p: p5): void
 
+    abstract readonly action?: () => void
+
     readonly position: Vector
     readonly layer: number
     readonly connectedToTileID: string
@@ -71,12 +73,15 @@ class Block extends Part {
     readonly health = 100
     readonly maxBattery = 0
     readonly battery = undefined
+
     customDrawFunc(p: p5): void {
         p.square(
             0, 0, size,
             size/5, size/5, size/5, size/5
         )
     }
+
+    readonly action = undefined
 }
 class Motor extends Part {
     readonly name = "Motor"
@@ -86,12 +91,15 @@ class Motor extends Part {
         now: 0,
         max: 100
     }
+
     customDrawFunc(p: p5): void {
         p.square(
             0, 0, size,
             size/5, size/5, size/5, size/5
         )
     }
+
+    readonly action = undefined
 }
 class Engine extends Part {
     readonly name = "Engine"
@@ -101,12 +109,32 @@ class Engine extends Part {
         now: 0,
         max: 100
     }
+
     customDrawFunc(p: p5): void {
         p.arc(0, size/2, size*4/5, size*5/4, p.PI, 0)
         p.rect(
             0, -size/4, size, size/2,
             size/5, size/5, size/5, size/5
         )
+
+        if( this.isOn ){
+            p.noStroke()
+            p.fill(0, 100, 250)
+            p.triangle(size*2/5, size/2, 0, size*1.5, -size*2/5, size/2)
+        }
+    }
+
+    private isOn = false
+    private readonly useBatteryAmount = 2
+
+    readonly action = () => {
+        if( this.battery.now > 0  ){
+            this.isOn = true
+            this.useBattery(this.useBatteryAmount)
+            //TODO: ロケットの加速をする
+        }else{
+            this.isOn = false
+        }
     }
 }
 class Battery extends Part {
@@ -114,8 +142,8 @@ class Battery extends Part {
     readonly health = 100
     readonly maxBattery = 500
     readonly battery = {
-        now: 500,
-        max: 500
+        now: 2000,
+        max: 2000
     }
     customDrawFunc(p: p5): void {
         p.fill(100)
@@ -124,6 +152,8 @@ class Battery extends Part {
             size/5, size/5, size/5, size/5
         )
     }
+
+    action?: (() => void) | undefined;
 }
 
 const partClasses = [Block, Motor, Engine, Battery]
