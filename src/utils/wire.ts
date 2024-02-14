@@ -21,12 +21,12 @@ export class Wire {
     draw(p: p5, constructedParts: { [key: string]: { position: Vector, angle: number, part: Part } }){
         const from = constructedParts[this.from].position
         const to = constructedParts[this.to].position
-        //水色→オレンジ
-
-        const markVector = Vector.setMag(Vector.sub(to, from), size*0.5)
-
+        
         this.drawLine(p, from, to, 6, p.color(200))
         this.drawLine(p, from, to, 4, p.color(50))
+        
+        //水色→オレンジ
+        const markVector = Vector.setMag(Vector.sub(to, from), size*0.5)
         
         p.noStroke()
         p.fill("#00bbff")

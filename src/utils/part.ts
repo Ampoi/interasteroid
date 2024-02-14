@@ -29,13 +29,18 @@ export abstract class Part {
         p.translate(position.x*size, position.y*size)
         p.rotate(angle)
         
-        p.strokeWeight(2)
+        p.strokeWeight(size/20)
         p.fill(200)
         p.stroke(150)
 
         this.customDrawFunc(p)
 
         if( this.battery ){
+            p.noStroke()
+            p.fill(150)
+            p.circle(0, 0, size * 0.85)
+            p.fill("#0ac729")
+            p.arc(0, 0, size*0.85, size*0.85, -Math.PI/2, Math.PI * (this.battery.now / this.battery.max * 2 - 1/2));
             p.fill(255)
             p.circle(0, 0, size * 0.7)
         }
@@ -99,7 +104,7 @@ class Battery extends Part {
     readonly maxBattery = 500
     readonly battery = {
         now: 0,
-        max: 100
+        max: 500
     }
     customDrawFunc(p: p5): void {
         p.fill(100)
