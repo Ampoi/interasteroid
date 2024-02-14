@@ -5,10 +5,14 @@ import { Wire } from "./wire"
 
 export const rocket: {
     angle: number
+    position: Vector
+    velocity: Vector
     bodyParts: { [key: string]: Part }
     wires: { [key: string]: Wire }
 } = {
     angle: 0,
+    position: new Vector(0, 0),
+    velocity: new Vector(-10, -10),
     bodyParts: {
         heart: createPart(new Vector(0, 0), 0, "rocket", "Battery")
     },

@@ -53,6 +53,39 @@ const updateMousePosition = (p: p5) => {
     mousePositionFromCenter.y =  Math.round((p.mouseY - p.windowHeight / 2) / size)
 }
 
+class StarLayer {
+    private readonly stars: Vector[] = []
+    private readonly distance: number
+    private readonly chunkSize: Record<"height" | "width", number>
+
+    constructor( height: number, width: number, amount: number, distance: number ){
+        this.chunkSize = {height, width}
+        this.distance = distance
+        for( let i = 0; i < amount; i++ ){
+            this.stars.push(new Vector(
+                (Math.random() - 0.5) * this.chunkSize.height,
+                (Math.random() - 0.5) * this.chunkSize.width
+            ))
+        }
+    }
+
+    draw(p: p5){
+        p.noStroke()
+        p.fill(255)
+        p.translate(-rocket.position.x*size/this.distance, -rocket.position.y*size/this.distance)
+        this.stars.forEach((star) => {
+            p.circle(star.x, star.y, 2)
+        })
+        p.translate(rocket.position.x*size/this.distance, rocket.position.y*size/this.distance)
+    }
+}
+
+const starLayers = [
+    new StarLayer(1000, 1000, 100, 1000),
+    new StarLayer(1000, 1000, 100, 2000),
+    new StarLayer(1000, 1000, 100, 4000)
+]
+
 const mousePositionFromCenter= new Vector(0, 0)
 
 new p5((p: p5) => {
@@ -68,11 +101,15 @@ new p5((p: p5) => {
 
     p.draw = () => {
         p.background(0)
-        p.translate(p.windowWidth/2, p.windowHeight/2)
+        p.translate(p.windowWidth/2, p.windowHeight/2) //画面中央へ0, 0を移動
+        
+        starLayers.forEach((starLayer) => starLayer.draw(p))
+
+        p.translate(-rocket.position.x*size, -rocket.position.y*size) //ロケットの中身を0, 0にする
 
         p.textSize(16)
         constructedParts = {}
-        constructParts(p, new Vector(0, 0), rocket.angle, "heart", rocket.bodyParts.heart)
+        constructParts(p, rocket.position, rocket.angle, "heart", rocket.bodyParts.heart)
         
         Object.values(constructedParts).forEach(({ position, angle, part }) => {
             part.draw(p, position, angle)
@@ -83,9 +120,13 @@ new p5((p: p5) => {
             wire.energize()
         })
 
+        p.translate(rocket.position.x*size, rocket.position.y*size)
+
         p.fill(0, 255, 255, 80)
         p.noStroke()
         p.square(mousePositionFromCenter.x * size, mousePositionFromCenter.y * size, size)
+
+        rocket.position.add(rocket.velocity.x, rocket.velocity.y)
     }
     
     p.mouseMoved = () => updateMousePosition(p)
