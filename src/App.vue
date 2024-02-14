@@ -76,16 +76,8 @@ new p5((p: p5) => {
         Object.values(constructedParts).forEach(({ position, angle, part }) => {
             part.draw(p, position, angle)
         })
-        Object.values(rocket.wires).forEach(({from, to}) => {
-            const { position: fromPosition } = constructedParts[from]
-            const { position: toPosition } = constructedParts[to]
-
-            p.strokeWeight(6)
-            p.stroke(255, 255, 255)
-            p.line(fromPosition.x*size, fromPosition.y*size, toPosition.x*size, toPosition.y*size)
-            p.strokeWeight(4)
-            p.stroke(255, 0, 0)
-            p.line(fromPosition.x*size, fromPosition.y*size, toPosition.x*size, toPosition.y*size)
+        Object.values(rocket.wires).forEach((wire) => {
+            wire.draw(p, constructedParts)
         })
 
         p.fill(0, 255, 255, 80)
