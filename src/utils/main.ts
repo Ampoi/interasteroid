@@ -83,3 +83,5 @@ export function deleteClickedPart(event: MouseEvent, position: Vector){
         deletePart(deleteTileData[0])
     }
 }
+
+export const energyColor = "#0ac729"
