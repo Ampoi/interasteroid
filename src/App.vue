@@ -54,47 +54,70 @@ const updateMousePosition = (p: p5) => {
 }
 
 class StarLayer {
-    private readonly stars: Vector[] = []
-    private readonly distance: number
-    private readonly chunkSize: Record<"height" | "width", number>
+    readonly depth: number
+    size: number
+    stars: Vector[] = []
 
-    constructor( height: number, width: number, amount: number, distance: number ){
-        this.chunkSize = {height, width}
-        this.distance = distance
-        for( let i = 0; i < amount; i++ ){
-            this.stars.push(new Vector(
-                (Math.random() - 0.5) * this.chunkSize.height,
-                (Math.random() - 0.5) * this.chunkSize.width
-            ))
-        }
+    constructor( size: number, depth: number ){
+        this.depth = depth
+        this.size = size * this.depth
+    }
+
+    resize(size: number){
+        this.size = size * this.depth
+    }
+
+    updateStars(){
+        const range = Math.PI / 2
+        const angle = rocket.velocity.angleBetween(new Vector(-1, 0));
+        const newStar = Vector.add(
+            Vector.fromAngle((Math.random() - 0.5) * range + angle).mult(this.size),
+            Vector.mult(rocket.position, size)
+        )
+
+        this.stars.push(newStar)
+
+        this.stars.filter(star => {
+            return Vector.sub(
+                star,
+                Vector.mult(rocket.position, size)
+            ).mag() < this.size
+        })
     }
 
     draw(p: p5){
+        p.fill(200)
         p.noStroke()
-        p.fill(255)
-        p.translate(-rocket.position.x*size/this.distance, -rocket.position.y*size/this.distance)
-        this.stars.forEach((star) => {
-            p.circle(star.x, star.y, 2)
+        this.stars.forEach(star => {
+        //    console.log(star.x - rocket.position.x * size,
+        //        star.y - rocket.position.y * size)
+            p.circle(
+                (star.x - rocket.position.x * size) / this.depth,
+                (star.y - rocket.position.y * size) / this.depth,
+                2
+            )
         })
-        p.translate(rocket.position.x*size/this.distance, rocket.position.y*size/this.distance)
     }
 }
-
-const starLayers = [
-    new StarLayer(1000, 1000, 100, 1000),
-    new StarLayer(1000, 1000, 100, 2000),
-    new StarLayer(1000, 1000, 100, 4000)
-]
 
 const mousePositionFromCenter= new Vector(0, 0)
 
 new p5((p: p5) => {
+    const starLayers= [
+        new StarLayer(1000, 100),
+        new StarLayer(1000, 200),
+        new StarLayer(1000, 400)
+    ]
+
     p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight)
         p.rectMode(p.CENTER)
     }
 
-    p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight)
+    p.windowResized = () => {
+        p.resizeCanvas(p.windowWidth, p.windowHeight)
+        starLayers.forEach(layer => layer.resize(Math.sqrt(((p.width / 2) ** 2) + ((p.height / 2) ** 2))))
+    }
 
     let wireFrom: string | undefined = undefined
     let stringingWire = false
@@ -103,7 +126,10 @@ new p5((p: p5) => {
         p.background(0)
         p.translate(p.windowWidth/2, p.windowHeight/2) //画面中央へ0, 0を移動
         
-        starLayers.forEach((starLayer) => starLayer.draw(p))
+        starLayers.forEach((starLayer) => {
+            starLayer.updateStars()
+            starLayer.draw(p)
+        })
 
         p.translate(-rocket.position.x*size, -rocket.position.y*size) //ロケットの中身を0, 0にする
 
@@ -126,7 +152,7 @@ new p5((p: p5) => {
         p.noStroke()
         p.square(mousePositionFromCenter.x * size, mousePositionFromCenter.y * size, size)
 
-        rocket.position.add(rocket.velocity.x, rocket.velocity.y)
+        rocket.position.add(rocket.velocity)
     }
     
     p.mouseMoved = () => updateMousePosition(p)
