@@ -12,6 +12,7 @@ import { addPart, deleteClickedPart } from "./utils/main"
 import { rocket, getSamePositionParts } from "./utils/main"
 import { generateUID } from "./utils/uid";
 import { Wire } from "./utils/wire"
+import { StarLayer } from "./utils/stars"
 
 const selectedPartIndex = ref(0)
 const selectedPart = computed(() => partNames[selectedPartIndex.value])
@@ -53,53 +54,6 @@ const updateMousePosition = (p: p5) => {
     mousePositionFromCenter.y =  Math.round((p.mouseY - p.windowHeight / 2) / size)
 }
 
-class StarLayer {
-    readonly depth: number
-    size: number
-    stars: Vector[] = []
-
-    constructor( size: number, depth: number ){
-        this.depth = depth
-        this.size = size * this.depth
-    }
-
-    resize(size: number){
-        this.size = size * this.depth
-    }
-
-    updateStars(){
-        const range = Math.PI / 2
-        const angle = rocket.velocity.angleBetween(new Vector(-1, 0));
-        const newStar = Vector.add(
-            Vector.fromAngle((Math.random() - 0.5) * range + angle).mult(this.size),
-            Vector.mult(rocket.position, size)
-        )
-
-        this.stars.push(newStar)
-
-        this.stars.filter(star => {
-            return Vector.sub(
-                star,
-                Vector.mult(rocket.position, size)
-            ).mag() < this.size
-        })
-    }
-
-    draw(p: p5){
-        p.fill(200)
-        p.noStroke()
-        this.stars.forEach(star => {
-        //    console.log(star.x - rocket.position.x * size,
-        //        star.y - rocket.position.y * size)
-            p.circle(
-                (star.x - rocket.position.x * size) / this.depth,
-                (star.y - rocket.position.y * size) / this.depth,
-                2
-            )
-        })
-    }
-}
-
 const mousePositionFromCenter= new Vector(0, 0)
 
 new p5((p: p5) => {
@@ -125,6 +79,7 @@ new p5((p: p5) => {
     p.draw = () => {
         p.background(0)
         p.translate(p.windowWidth/2, p.windowHeight/2) //画面中央へ0, 0を移動
+        p.rotate(-rocket.angle)
         
         starLayers.forEach((starLayer) => {
             starLayer.updateStars()
@@ -147,12 +102,14 @@ new p5((p: p5) => {
         })
 
         p.translate(rocket.position.x*size, rocket.position.y*size)
+        p.rotate(rocket.angle)
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
         p.square(mousePositionFromCenter.x * size, mousePositionFromCenter.y * size, size)
 
         rocket.position.add(rocket.velocity)
+        rocket.angle += rocket.angleVelocity
     }
     
     p.mouseMoved = () => updateMousePosition(p)
@@ -194,7 +151,7 @@ new p5((p: p5) => {
         if( event.key == "f" ){
             modeIndex.value = (modeIndex.value + 1) % modes.length
         }
-        if(["1", "2", "3", "4"].includes(event.key)){
+        if(["1", "2", "3", "4", "5"].includes(event.key)){
             selectedPartIndex.value =  Number(event.key)-1
         }
     }

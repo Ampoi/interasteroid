@@ -1,6 +1,6 @@
 import p5, { Vector } from "p5"
 
-export const partNames = ["Block", "Motor", "Engine", "Battery"] as const
+export const partNames = ["Block", "Motor", "Engine", "Battery", "Button"] as const
 export type PartName = typeof partNames[number]
 
 const size = 40
@@ -71,7 +71,6 @@ export abstract class Part {
 class Block extends Part {
     readonly name = "Block"
     readonly health = 100
-    readonly maxBattery = 0
     readonly battery = undefined
 
     customDrawFunc(p: p5): void {
@@ -86,7 +85,6 @@ class Block extends Part {
 class Motor extends Part {
     readonly name = "Motor"
     readonly health = 100
-    readonly maxBattery = 20
     readonly battery = {
         now: 0,
         max: 100
@@ -104,7 +102,6 @@ class Motor extends Part {
 class Engine extends Part {
     readonly name = "Engine"
     readonly health = 100
-    readonly maxBattery = 20
     readonly battery = {
         now: 0,
         max: 100
@@ -140,7 +137,6 @@ class Engine extends Part {
 class Battery extends Part {
     readonly name = "Battery"
     readonly health = 100
-    readonly maxBattery = 500
     readonly battery = {
         now: 2000,
         max: 2000
@@ -156,7 +152,33 @@ class Battery extends Part {
     action?: (() => void) | undefined;
 }
 
-const partClasses = [Block, Motor, Engine, Battery]
+class Button extends Part {
+    readonly name = "Button"
+    readonly health = 100
+    readonly battery = {
+        now: 0,
+        max: 100
+    }
+    private isClicked = false
+    customDrawFunc(p: p5): void {
+        p.square(
+            0, 0, size,
+            size/5, size/5, size/5, size/5
+        )
+        p.fill(200, 0, 0)
+        p.rect(0, -size*0.6, size*0.6, size*0.2)
+    }
+    public useBattery(energy: number): void {
+        if( this.isClicked ){
+            const newBattery = this.battery.now - energy
+            this.battery.now = newBattery < 0 ? 0 : newBattery
+        }
+    }
+    action = () => {
+    }
+}
+
+const partClasses = [Block, Motor, Engine, Battery, Button]
 
 export const createPart = (position: Vector, layer: number, connectedToTileID: string, partName: PartName) => {
     const newPartClass = partClasses.find(partClass => partClass.name == partName)
