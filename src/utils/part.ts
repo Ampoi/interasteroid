@@ -12,6 +12,7 @@ export abstract class Part {
         now: number
         max: number
     } | undefined
+    abstract readonly port: undefined | ["charge"] | ["charge", "triangle"] | ["charge", "triangle", "square"]
     abstract customDrawFunc(p: p5): void
 
     abstract readonly action?: () => void

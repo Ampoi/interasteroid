@@ -21,10 +21,10 @@ export class StarLayer {
     }
 
     updateStars(){
-        const range = Math.PI / 2
-        const angle = rocket.velocity.angleBetween(new Vector(-1, 0));
+        const range = Math.PI
+        const angle = rocket.velocity.angleBetween(new Vector(0, -1));
         const newStarVector = Vector.add(
-            Vector.fromAngle((Math.random() - 0.5) * range + angle).mult(this.size),
+            Vector.fromAngle((Math.random() - 0.5) * range - angle - Math.PI/2).mult(this.size),
             Vector.mult(rocket.position, rocketSize)
         )
 
@@ -33,7 +33,7 @@ export class StarLayer {
             vector: newStarVector
         })
 
-        this.stars.filter(star => {
+        this.stars = this.stars.filter(star => {
             return Vector.sub(
                 star.vector,
                 Vector.mult(rocket.position, rocketSize)
