@@ -23,8 +23,15 @@ export class Wire {
     }
 
     draw(p: p5, constructedParts: { [key: string]: { position: Vector, angle: number, part: Part } }){
-        const from = constructedParts[this.from.partID].position
-        const to = constructedParts[this.to.partID].position
+        const fromPartPosition = constructedParts[this.from.partID].position
+        const fromPartPortLength = rocket.bodyParts[this.from.partID].energy?.ports.length
+        if( !fromPartPortLength ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
+        const from = Vector.sub(fromPartPosition, Vector.fromAngle((this.from.portIndex / fromPartPortLength + 90/360) * Math.PI * 2).mult(0.775 / 2)) // 0.7はpart描画時に用いているouterCircleとinnerCircleの平均
+        
+        const toPartPosition = constructedParts[this.to.partID].position
+        const toPartPortLength = rocket.bodyParts[this.from.partID].energy?.ports.length
+        if( !toPartPortLength ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
+        const to = Vector.sub(toPartPosition, Vector.fromAngle((this.to.portIndex / toPartPortLength + 90/360) * Math.PI * 2).mult(0.775 / 2)) // 0.7はpart描画時に用いているouterCircleとinnerCircleの平均
         
         this.drawLine(p, from, to, 6, p.color(200))
         this.drawLine(p, from, to, 4, this.transporting ? p.color(energyColor) :p.color(50))
