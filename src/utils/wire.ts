@@ -25,7 +25,7 @@ export class Wire {
         const to = constructedParts[this.to].position
         
         this.drawLine(p, from, to, 6, p.color(200))
-        this.drawLine(p, from, to, 4, this.transporting ? p.color("#0ac729") :p.color(50))
+        this.drawLine(p, from, to, 4, this.transporting ? p.color(energyColor) :p.color(50))
         
         //水色→オレンジ
         const markVector = Vector.setMag(Vector.sub(to, from), size*0.5)
@@ -41,22 +41,23 @@ export class Wire {
 
     energize(){
         const from = rocket.bodyParts[this.from]
+        if( !from.energy ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
+        
         const to = rocket.bodyParts[this.to]
+        if( !to.energy ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
 
         const wireToAmount = Object.values(rocket.wires).filter(wire => wire.to == this.to).length
-        if( !from.battery ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
-        if( !to.battery ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
-        const toPartNeededEnergy = to.battery.max - to.battery.now
+        const toPartNeededEnergy = to.energy.battery.max - to.energy.battery.now
         const toPartNeededEnergyPerWire = toPartNeededEnergy / wireToAmount
         const transportEnergy = Math.min(
             toPartNeededEnergyPerWire,
             this.energizeLimit,
-            from.battery.now
+            from.energy.battery.now
         )
 
         if( transportEnergy > 0 ){
-            from.useBattery(transportEnergy)
-            to.chargeBattery(transportEnergy)
+            from.energy.ports[0].useBattery(transportEnergy)
+            to.energy.ports[0].chargeBattery(transportEnergy)
             this.transporting = true
         }else{
             this.transporting = false

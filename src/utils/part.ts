@@ -7,12 +7,10 @@ const size = 40
 
 class Port {
     powerIsOn = false
-    battery: { now: number, max: number }
     
-    constructor( part: Part ){
-        if( !part.energy ) throw new Error("ポートを用いているクラスは電力を使用していません")
-        this.battery = part.energy.battery
-    }
+    constructor(
+        public readonly battery: { now: number, max: number }
+    ){}
 
     public chargeBattery(energy: number){
         if( !this.battery ) throw new Error("バッテリーが存在しないので充電できません！")
@@ -36,20 +34,20 @@ export abstract class Part {
             now: number
             max: number
         }
-        ports: Port[]
+        readonly ports: Readonly<Port[]>
     } | undefined
     
     abstract customDrawFunc(p: p5): void
     abstract readonly action?: () => void
 
     readonly position: Vector
-    readonly layer: number
-    readonly connectedToTileID: string
 
-    constructor(position: Vector, layer: number, connectedToTileID: string) {
+    constructor(
+        position: Vector,
+        public readonly layer: number,
+        public readonly connectedToTileID: string
+    ){
         this.position = position.copy()
-        this.layer = layer
-        this.connectedToTileID = connectedToTileID
     }
 
     draw(p: p5, position: Vector, angle: number){
@@ -99,12 +97,18 @@ class Block extends Part {
 class Motor extends Part {
     readonly name = "Motor"
     readonly health = 100
-    readonly energy: Exclude<Part["energy"], undefined> = {
-        battery: {
+    readonly energy: { readonly battery: { now: number; max: number; }; readonly ports: readonly Port[]; }
+
+    constructor(...args: [Vector, number, string]){
+        super(...args)
+        const battery = {
             now: 0,
             max: 100
-        },
-        ports: [ new Port(this) ]
+        }
+        this.energy = {
+            battery,
+            ports: [ new Port(battery) ]
+        }
     }
 
     customDrawFunc(p: p5): void {
@@ -119,12 +123,18 @@ class Motor extends Part {
 class Engine extends Part {
     readonly name = "Engine"
     readonly health = 100
-    readonly energy: Exclude<Part["energy"], undefined> = {
-        battery: {
+    readonly energy: { readonly battery: { now: number; max: number; }; readonly ports: readonly Port[]; }
+
+    constructor(...args: [Vector, number, string]){
+        super(...args)
+        const battery = {
             now: 0,
             max: 100
-        },
-        ports: [ new Port(this) ]
+        }
+        this.energy = {
+            battery,
+            ports: [ new Port(battery) ]
+        }
     }
 
     customDrawFunc(p: p5): void {
@@ -157,13 +167,20 @@ class Engine extends Part {
 class Battery extends Part {
     readonly name = "Battery"
     readonly health = 100
-    readonly energy: Exclude<Part["energy"], undefined> = {
-        battery: {
+    readonly energy: { readonly battery: { now: number; max: number; }; readonly ports: readonly Port[]; }
+
+    constructor(...args: [Vector, number, string]){
+        super(...args)
+        const battery = {
             now: 2000,
             max: 2000
-        },
-        ports: [ new Port(this) ]
+        }
+        this.energy = {
+            battery,
+            ports: [ new Port(battery) ]
+        }
     }
+    
     customDrawFunc(p: p5): void {
         p.fill(100)
         p.square(
@@ -178,12 +195,18 @@ class Battery extends Part {
 class Button extends Part {
     readonly name = "Button"
     readonly health = 100
-    readonly energy: Exclude<Part["energy"], undefined> = {
-        battery: {
+    readonly energy: { readonly battery: { now: number; max: number; }; readonly ports: readonly Port[]; }
+
+    constructor(...args: [Vector, number, string]){
+        super(...args)
+        const battery = {
             now: 0,
             max: 100
-        },
-        ports: [ new Port(this) ]
+        }
+        this.energy = {
+            battery,
+            ports: [ new Port(battery) ]
+        }
     }
 
     customDrawFunc(p: p5): void {
@@ -195,8 +218,7 @@ class Button extends Part {
         p.rect(0, -size*0.6, size*0.6, size*0.2)
     }
 
-    action = () => {
-    }
+    action = () => {}
 }
 
 const partClasses = [Block, Motor, Engine, Battery, Button]

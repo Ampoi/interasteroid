@@ -119,7 +119,7 @@ new p5((p: p5) => {
         
         const samePositionParts = getSamePositionParts(mousePositionFromCenter)
         const clickedPart = samePositionParts[0]
-        if( clickedPart && clickedPart[1].battery ){
+        if( clickedPart && clickedPart[1].energy ){
             wireFrom = clickedPart[0]
             stringingWire = true
         }
@@ -131,7 +131,7 @@ new p5((p: p5) => {
             updateMousePosition(p)
             const samePositionParts = getSamePositionParts(mousePositionFromCenter)
             const clickedPart = samePositionParts[0]
-            if( clickedPart && clickedPart[1].battery ){
+            if( clickedPart && clickedPart[1].energy ){
                 const uid = generateUID()
                 rocket.wires[uid] = new Wire(wireFrom, clickedPart[0])
             }
