@@ -7,12 +7,13 @@ import p5 from "p5"
 import { Vector } from "p5"
 import { computed, ref } from "vue";
 
-import { partNames, type Part } from "./utils/part"
+import { partNames } from "./utils/part"
 import { addPart, deleteClickedPart } from "./utils/main"
 import { rocket, getSamePositionParts } from "./utils/main"
 import { generateUID } from "./utils/uid";
 import { Wire } from "./utils/wire"
 import { StarLayer } from "./utils/stars"
+import { constructParts } from "./utils/constructParts"
 
 const selectedPartIndex = ref(0)
 const selectedPart = computed(() => partNames[selectedPartIndex.value])
@@ -22,32 +23,6 @@ const modeIndex = ref(0)
 const mode = computed(() => modes[modeIndex.value])
 
 const size = 40
-
-let constructedParts: { [key: string]: { position: Vector, angle: number, part: Part } } = {}
-
-function constructParts(p: p5, parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part){
-    const part = rocket.bodyParts[partID]
-    const offset  = Vector.sub(part.position, parentPart.position)
-    const newPosition = Vector.add(
-        parentPosition,
-        Vector.add(
-            Vector.fromAngle(Math.PI/2 + parentAngle).mult(offset.y),
-            Vector.fromAngle(parentAngle).mult(offset.x)
-        )
-    )
-
-    constructedParts[partID] = {
-        position: newPosition,
-        angle: parentAngle,
-        part
-    }
-
-    Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {
-        if(childPart.connectedToTileID == partID){
-            constructParts(p, newPosition, parentAngle, childPartID, part)
-        }
-    })
-}
 
 const updateMousePosition = (p: p5) => {
     mousePositionFromCenter.x =  Math.round((p.mouseX - p.windowWidth / 2) / size)
@@ -89,8 +64,7 @@ new p5((p: p5) => {
         p.translate(-rocket.position.x*size, -rocket.position.y*size) //ロケットの中身を0, 0にする
 
         p.textSize(16)
-        constructedParts = {}
-        constructParts(p, rocket.position, rocket.angle, "heart", rocket.bodyParts.heart)
+        const constructedParts = constructParts()
         
         Object.values(constructedParts).forEach(({ position, angle, part }) => {
             part.draw(p, position, angle)
