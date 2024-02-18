@@ -3,16 +3,18 @@ import { Part } from "./part"
 import { energyColor, rocket } from "./main"
 
 const size = 40
+type Port = {
+    partID: string
+    portIndex: number
+}
 
 export class Wire {
-    readonly to: string
-    readonly from: string
     readonly energizeLimit = 5
 
-    constructor(from: string, to: string){
-        this.to = to
-        this.from = from
-    }
+    constructor(
+        readonly from: Port,
+        readonly to: Port
+    ){}
 
     private drawLine(p: p5, from: Vector, to: Vector, weight: number, color: p5.Color){
         p.strokeWeight(weight)
@@ -21,8 +23,8 @@ export class Wire {
     }
 
     draw(p: p5, constructedParts: { [key: string]: { position: Vector, angle: number, part: Part } }){
-        const from = constructedParts[this.from].position
-        const to = constructedParts[this.to].position
+        const from = constructedParts[this.from.partID].position
+        const to = constructedParts[this.to.partID].position
         
         this.drawLine(p, from, to, 6, p.color(200))
         this.drawLine(p, from, to, 4, this.transporting ? p.color(energyColor) :p.color(50))
@@ -40,24 +42,27 @@ export class Wire {
     transporting = false
 
     energize(){
-        const from = rocket.bodyParts[this.from]
-        if( !from.energy ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
+        const fromPart = rocket.bodyParts[this.from.partID]
+        if( !fromPart.energy ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
+        const from = fromPart.energy.ports[this.from.portIndex]
         
-        const to = rocket.bodyParts[this.to]
-        if( !to.energy ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
+        const toPart = rocket.bodyParts[this.to.partID]
+        if( !toPart.energy ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
+        const to = toPart.energy.ports[this.to.portIndex]
 
         const wireToAmount = Object.values(rocket.wires).filter(wire => wire.to == this.to).length
-        const toPartNeededEnergy = to.energy.battery.max - to.energy.battery.now
+        const toPartNeededEnergy = to.battery.max - to.battery.now
+        
         const toPartNeededEnergyPerWire = toPartNeededEnergy / wireToAmount
         const transportEnergy = Math.min(
             toPartNeededEnergyPerWire,
             this.energizeLimit,
-            from.energy.battery.now
+            from.battery.now
         )
 
         if( transportEnergy > 0 ){
-            from.energy.ports[0].useBattery(transportEnergy)
-            to.energy.ports[0].chargeBattery(transportEnergy)
+            from.useBattery(transportEnergy)
+            to.chargeBattery(transportEnergy)
             this.transporting = true
         }else{
             this.transporting = false

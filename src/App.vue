@@ -59,9 +59,16 @@ const createWire = {
             mouseFromCenter.updatePosition(p)
             const samePositionParts = getSamePositionParts(mouseFromCenter.partPosition)
             const clickedPart = samePositionParts[0]
+
             if( clickedPart && clickedPart[1].energy ){
                 const uid = generateUID()
-                rocket.wires[uid] = new Wire(wireFrom, clickedPart[0])
+                rocket.wires[uid] = new Wire({
+                    partID: wireFrom,
+                    portIndex: 0
+                }, {
+                    partID: clickedPart[0],
+                    portIndex: 0
+                })
             }
         }
         wireFrom = undefined
