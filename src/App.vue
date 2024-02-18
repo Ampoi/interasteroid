@@ -39,17 +39,50 @@ class MousePositionFromCenter {
 
 const mouseFromCenter = new MousePositionFromCenter()
 
-let wireFrom: string | undefined = undefined
+let wireFrom: {
+    partID: string
+    portIndex: number
+} | undefined = undefined
 let stringingWire = false
+
+const range = 10
+
+function getReachedPort(){
+    type ReachedPort = {
+        partID: string
+        portIndex: number
+        distanceBetweenMouse: number
+    }
+
+    const constructedParts = constructParts() //TODO:位置座標に直されたパーツ群のクラス化
+    const nearestAvailablePort = Object.entries(constructedParts).map(([ partID, { part, position, angle } ]) => {
+        if( !part.energy ) return
+        const { ports } = part.energy
+
+        const availablePorts = ports.map((_, portIndex) => {
+            const portPosition = Vector.fromAngle((portIndex / ports.length + 90/360) * Math.PI * 2).mult(0.7 / 2).rotate(angle).add(position).sub(rocket.position).mult(size) // 0.7はpart描画時に用いているouterCircleとinnerCircleの平均
+            const yRevertedPortPosition = new Vector(portPosition.x, -portPosition.y)
+            const distanceBetweenMouse = Vector.dist(mouseFromCenter.position, yRevertedPortPosition)
+            if(distanceBetweenMouse < range){
+                return { partID, portIndex, distanceBetweenMouse}
+            }
+        }).filter(<T>(data: T): data is Exclude<T, undefined> => !!data)
+
+        return availablePorts
+    }).filter(<T>(data: T): data is Exclude<T, undefined> => !!data).flat().sort(({ distanceBetweenMouse: A }, { distanceBetweenMouse: B }) => A - B)[0] as ReachedPort | undefined
+
+    return nearestAvailablePort
+}
 
 const createWire = {
     start: () => {
         if( mode.value != "wire" ) return
         
-        const samePositionParts = getSamePositionParts(mouseFromCenter.partPosition)
-        const clickedPart = samePositionParts[0]
-        if( clickedPart && clickedPart[1].energy ){
-            wireFrom = clickedPart[0]
+        const connectPort = getReachedPort()
+        if( connectPort ){
+            const { partID, portIndex} = connectPort
+            wireFrom = { partID, portIndex }
+            console.log("start")
             stringingWire = true
         }
     },
@@ -57,18 +90,13 @@ const createWire = {
         if( mode.value != "wire" ) return
         if( stringingWire && wireFrom ){
             mouseFromCenter.updatePosition(p)
-            const samePositionParts = getSamePositionParts(mouseFromCenter.partPosition)
-            const clickedPart = samePositionParts[0]
+            console.log("aa")
+            const connectPort = getReachedPort()
 
-            if( clickedPart && clickedPart[1].energy ){
+            if( connectPort ){
                 const uid = generateUID()
-                rocket.wires[uid] = new Wire({
-                    partID: wireFrom,
-                    portIndex: 0
-                }, {
-                    partID: clickedPart[0],
-                    portIndex: 0
-                })
+                const { partID, portIndex } = connectPort
+                rocket.wires[uid] = new Wire(wireFrom, {partID, portIndex})
             }
         }
         wireFrom = undefined
