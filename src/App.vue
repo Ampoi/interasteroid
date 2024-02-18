@@ -24,12 +24,50 @@ const mode = computed(() => modes[modeIndex.value])
 
 const size = 40
 
-const updateMousePosition = (p: p5) => {
-    mousePositionFromCenter.x =  Math.round((p.mouseX - p.windowWidth / 2) / size)
-    mousePositionFromCenter.y =  Math.round((p.mouseY - p.windowHeight / 2) / size)
+class MousePositionFromCenter {
+    readonly position = new Vector()
+    readonly partPosition = new Vector()
+    
+    updatePosition(p: p5){
+        this.position.x = p.mouseX - p.windowWidth / 2
+        this.position.y = p.mouseY - p.windowHeight / 2
+
+        this.partPosition.x = Math.round(this.position.x  / size)
+        this.partPosition.y = Math.round(this.position.y  / size)
+    }
 }
 
-const mousePositionFromCenter= new Vector(0, 0)
+const mouseFromCenter = new MousePositionFromCenter()
+
+let wireFrom: string | undefined = undefined
+let stringingWire = false
+
+const createWire = {
+    start: () => {
+        if( mode.value != "wire" ) return
+        
+        const samePositionParts = getSamePositionParts(mouseFromCenter.partPosition)
+        const clickedPart = samePositionParts[0]
+        if( clickedPart && clickedPart[1].energy ){
+            wireFrom = clickedPart[0]
+            stringingWire = true
+        }
+    },
+    end: (p: p5) => {
+        if( mode.value != "wire" ) return
+        if( stringingWire && wireFrom ){
+            mouseFromCenter.updatePosition(p)
+            const samePositionParts = getSamePositionParts(mouseFromCenter.partPosition)
+            const clickedPart = samePositionParts[0]
+            if( clickedPart && clickedPart[1].energy ){
+                const uid = generateUID()
+                rocket.wires[uid] = new Wire(wireFrom, clickedPart[0])
+            }
+        }
+        wireFrom = undefined
+        stringingWire = false
+    }
+} as const
 
 new p5((p: p5) => {
     const starLayers= [
@@ -47,9 +85,6 @@ new p5((p: p5) => {
         p.resizeCanvas(p.windowWidth, p.windowHeight)
         starLayers.forEach(layer => layer.resize(Math.sqrt(((p.width / 2) ** 2) + ((p.height / 2) ** 2))))
     }
-
-    let wireFrom: string | undefined = undefined
-    let stringingWire = false
 
     p.draw = () => {
         p.background(0)
@@ -80,53 +115,30 @@ new p5((p: p5) => {
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
-        p.square(mousePositionFromCenter.x * size, mousePositionFromCenter.y * size, size)
+        p.square(mouseFromCenter.partPosition.x * size, mouseFromCenter.partPosition.y * size, size)
 
         rocket.position.add(rocket.velocity)
         rocket.angle += rocket.angleVelocity
     }
     
-    p.mouseMoved = () => updateMousePosition(p)
+    p.mouseMoved = () => mouseFromCenter.updatePosition(p)
 
-    p.mousePressed = () => {
-        if( mode.value != "wire" ) return
-        
-        const samePositionParts = getSamePositionParts(mousePositionFromCenter)
-        const clickedPart = samePositionParts[0]
-        if( clickedPart && clickedPart[1].energy ){
-            wireFrom = clickedPart[0]
-            stringingWire = true
-        }
-    }
-
-    p.mouseReleased = () => {
-        if( mode.value != "wire" ) return
-        if( stringingWire && wireFrom ){
-            updateMousePosition(p)
-            const samePositionParts = getSamePositionParts(mousePositionFromCenter)
-            const clickedPart = samePositionParts[0]
-            if( clickedPart && clickedPart[1].energy ){
-                const uid = generateUID()
-                rocket.wires[uid] = new Wire(wireFrom, clickedPart[0])
-            }
-        }
-        wireFrom = undefined
-        stringingWire = false
-    }
+    p.mousePressed = createWire.start
+    p.mouseReleased = () => createWire.end(p)
 
     p.mouseClicked = () => {
         if( mode.value == "build" ){
-            addPart(selectedPart.value, mousePositionFromCenter)
+            addPart(selectedPart.value, mouseFromCenter.partPosition)
         }
     }
-    document.oncontextmenu = (event: MouseEvent) => deleteClickedPart(event, mousePositionFromCenter)
+    document.oncontextmenu = (event: MouseEvent) => deleteClickedPart(event, mouseFromCenter.partPosition)
 
     p.keyPressed = (event: KeyboardEvent) => {
         if( event.key == "f" ){
             modeIndex.value = (modeIndex.value + 1) % modes.length
         }
-        if(["1", "2", "3", "4", "5"].includes(event.key)){
-            selectedPartIndex.value =  Number(event.key)-1
+        if(Array.from({length: partNames.length}).map((_, i) => (i + 1).toString()).includes(event.key)){
+            selectedPartIndex.value =  Number(event.key) - 1
         }
     }
 })

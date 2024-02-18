@@ -2,7 +2,14 @@ import { Vector } from "p5"
 import { rocket } from "./main"
 import { Part } from "./part"
 
-type ConstructedParts = { [key: string]: { position: Vector, angle: number, part: Part } }
+type ConstructedParts = {
+    [key: string]: {
+        position: Vector
+        angle: number
+        part: Part
+        layer: number
+    }
+}
 
 function constructConnectedParts(parentPosition: Vector, parentAngle: number, partID: string, parentPart: Part, constructedParts: ConstructedParts){
     const part = rocket.bodyParts[partID]
@@ -18,7 +25,8 @@ function constructConnectedParts(parentPosition: Vector, parentAngle: number, pa
     constructedParts[partID] = {
         position: newPosition,
         angle: parentAngle,
-        part
+        part,
+        layer: part.layer
     }
 
     Object.entries(rocket.bodyParts).forEach(([childPartID, childPart]) => {

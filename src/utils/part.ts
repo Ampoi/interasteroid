@@ -61,19 +61,31 @@ export abstract class Part {
         this.customDrawFunc(p)
 
         if( this.energy ){
+            const outerCircleSize = size * 0.85
             p.noStroke()
             p.fill(150)
-            p.circle(0, 0, size * 0.85)
+            p.circle(0, 0, outerCircleSize)
             p.fill("#0ac729")
-            p.arc(0, 0, size*0.85, size*0.85, -Math.PI/2, Math.PI * (this.energy.battery.now / this.energy.battery.max * 2 - 1/2));
+            p.arc(0, 0, outerCircleSize, outerCircleSize, -Math.PI/2, Math.PI * (this.energy.battery.now / this.energy.battery.max * 2 - 1/2));
+
+            const innerCircleSize = size * 0.7
             p.fill(255)
-            p.circle(0, 0, size * 0.7)
+            p.circle(0, 0, innerCircleSize)
+
+            const ports = this.energy.ports
+            ports.forEach((_, i) => {
+                const portPosition = Vector.fromAngle((i / ports.length + 90/360) * Math.PI * 2).mult(( outerCircleSize + innerCircleSize ) / 4)
+                p.stroke("#000000")
+                p.strokeWeight(1.5)
+                p.fill("#404040")
+                p.circle(portPosition.x, -portPosition.y, size * 0.2)
+            })
         }
 
         p.textAlign(p.CENTER)
         p.noStroke()
         p.fill(0)
-        p.text(this.layer, 0, 0)
+        p.text(this.layer, 0, size * 0.1)
 
         p.rotate(-angle)
         p.translate(-position.x*size, -position.y*size)
@@ -107,7 +119,10 @@ class Motor extends Part {
         }
         this.energy = {
             battery,
-            ports: [ new Port(battery) ]
+            ports: [
+                new Port(battery),
+                new Port(battery)
+            ]
         }
     }
 
