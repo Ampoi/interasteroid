@@ -4,7 +4,7 @@ import { generateUID } from "./uid"
 import { computed, ref } from "vue"
 import { createPart } from "./parts"
 import { rocket } from "./rocket"
-import { partSize } from "./draw"
+import { partSize } from "../engine/main"
 
 export function getSamePositionParts(position: Vector): [id: string, part: Part][]{
     return Object.entries(rocket.bodyParts)

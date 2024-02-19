@@ -1,7 +1,9 @@
 import p5, { Vector } from "p5";
 import { Part } from "../part";
 import { Port } from "../port";
-import { partSize } from "../draw";
+import { partSize } from "../../engine/main";
+
+const useEnergy = 2
 
 export class Engine extends Part {
     readonly name = "Engine"
@@ -12,7 +14,7 @@ export class Engine extends Part {
         super(...args)
         const battery = {
             now: 0,
-            max: 100
+            max: useEnergy
         }
         this.energy = {
             battery,
@@ -35,12 +37,11 @@ export class Engine extends Part {
     }
 
     private isOn = false
-    private readonly useBatteryAmount = 2
 
     readonly action = () => {
         if( this.energy.battery.now > 0  ){
             this.isOn = true
-            this.energy.ports[0].useBattery(this.useBatteryAmount)
+            this.energy.ports[0].useBattery(useEnergy)
             //TODO: ロケットの加速をする
         }else{
             this.isOn = false

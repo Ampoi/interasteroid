@@ -12,7 +12,7 @@ import { rocket } from "./utils/rocket"
 import { StarLayer } from "./utils/stars"
 import { constructParts } from "./utils/constructParts"
 import { createWire } from "./utils/wire"
-import { partSize } from "./utils/draw";
+import { partSize } from "./engine/main";
 
 const selectedPartIndex = ref(0)
 const selectedPart = computed(() => partNames[selectedPartIndex.value])

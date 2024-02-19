@@ -1,6 +1,6 @@
 import p5, { Vector } from "p5"
 import { Port, getPortPosition } from "./port"
-import { partEnergyCircleSize, partSize } from "./draw"
+import { partEnergyCircleSize, partSize } from "../engine/main"
 
 export const partNames = ["Block", "Motor", "Engine", "Battery", "Button"] as const
 export type PartName = typeof partNames[number]
