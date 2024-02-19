@@ -3,14 +3,16 @@ import { Wire } from "./wire"
 import { Part } from "./part"
 import { createPart } from "./parts"
 
-export const rocket: {
+type Rocket = {
     angle: number
     angleVelocity: number
     position: Vector
     velocity: Vector
     bodyParts: { [key: string]: Part }
     wires: { [key: string]: Wire }
-} = {
+}
+
+export const rocket: Rocket = {
     angle: 0,
     angleVelocity: 0,
     position: new Vector(0, 0),
