@@ -1,11 +1,12 @@
 import p5, { Vector } from "p5"
 import { Part } from "./part"
-import { energyColor, mode, mouseFromCenter } from "./main"
+import { energyColor, mouseFromCenter } from "./main"
 import { rocket } from "./rocket"
 import { generateUID } from "./uid"
 import { constructParts } from "./constructParts"
 import { getPortPosition } from "./port"
-import { partSize } from "../engine/main"
+import { partSize } from "../draw/main"
+import { mode } from "../hooks/switchMode"
 
 type Port = {
     partID: string

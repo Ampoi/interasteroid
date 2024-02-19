@@ -3,30 +3,32 @@
     <p>part: {{ selectedPart }}</p>
 </template>
 <script setup lang="ts">
-import p5 from "p5"
-import { computed, ref } from "vue";
+import p5, { Vector } from "p5"
 
-import { partNames } from "./utils/part"
-import { addPart, deleteClickedPart, mouseFromCenter, mode, modeIndex, modes } from "./utils/main"
+import { addPart, deleteClickedPart, mouseFromCenter } from "./utils/main"
 import { rocket } from "./utils/rocket"
 import { StarLayer } from "./utils/stars"
 import { constructParts } from "./utils/constructParts"
 import { createWire } from "./utils/wire"
-import { partSize } from "./engine/main";
+import { partSize } from "./draw/main";
+import { startGame } from "./core/main"
 
-const selectedPartIndex = ref(0)
-const selectedPart = computed(() => partNames[selectedPartIndex.value])
+import { mode, selectedPart, switchMode } from "./hooks/switchMode"
+import { drawCursor } from "./draw/cursor"
 
 new p5((p: p5) => {
-    const starLayers= [
-        new StarLayer(1000, 100),
-        new StarLayer(1000, 200),
-        new StarLayer(1000, 400)
-    ]
+    const starLayers: StarLayer[] = []
 
     p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight)
-        p.rectMode(p.CENTER)
+        p.rectMode(p.CENTER);
+
+        [100, 200, 400].forEach((depth) => {
+            starLayers.push(new StarLayer(Math.sqrt(p.width ** 2 + p.height ** 2) / 2, depth))
+        });
+        console.log(starLayers)
+
+        startGame()
     }
 
     p.windowResized = () => {
@@ -36,17 +38,17 @@ new p5((p: p5) => {
 
     p.draw = () => {
         p.background(0)
-        p.translate(p.windowWidth/2, p.windowHeight/2) //画面中央へ0, 0を移動
-        p.rotate(-rocket.angle)
+        p.translate(p.windowWidth/2, p.windowHeight/2)
         
+        p.rotate(-rocket.angle)
+
         starLayers.forEach((starLayer) => {
             starLayer.updateStars()
             starLayer.draw(p)
         })
 
-        p.translate(-rocket.position.x*partSize, -rocket.position.y*partSize) //ロケットの中身を0, 0にする
+        p.translate(Vector.mult(rocket.position, -partSize))
 
-        p.textSize(16)
         const constructedParts = constructParts()
         
         Object.entries(constructedParts).forEach(([id, { position, angle, part }]) => {
@@ -55,22 +57,12 @@ new p5((p: p5) => {
         })
         Object.values(rocket.wires).forEach((wire) => {
             wire.draw(p, constructedParts)
-            wire.energize()
         })
 
-        p.translate(rocket.position.x*partSize, rocket.position.y*partSize)
+        p.translate(Vector.mult(rocket.position, partSize))
         p.rotate(rocket.angle)
 
-        p.noFill()
-        p.strokeWeight(2)
-        p.stroke(255, 100)
-        p.square(
-            mouseFromCenter.partPosition.x * partSize, mouseFromCenter.partPosition.y * partSize, partSize,
-            partSize/5, partSize/5, partSize/5, partSize/5
-        )
-
-        rocket.position.add(rocket.velocity)
-        rocket.angle += rocket.angleVelocity
+        drawCursor(p)        
     }
     
     p.mouseMoved = () => mouseFromCenter.updatePosition(p)
@@ -85,13 +77,6 @@ new p5((p: p5) => {
     }
     document.oncontextmenu = (event: MouseEvent) => deleteClickedPart(event, mouseFromCenter.partPosition)
 
-    p.keyPressed = (event: KeyboardEvent) => {
-        if( event.key == "f" ){
-            modeIndex.value = (modeIndex.value + 1) % modes.length
-        }
-        if(Array.from({length: partNames.length}).map((_, i) => (i + 1).toString()).includes(event.key)){
-            selectedPartIndex.value =  Number(event.key) - 1
-        }
-    }
+    p.keyPressed = switchMode
 })
 </script>

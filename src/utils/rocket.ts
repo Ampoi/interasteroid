@@ -18,7 +18,7 @@ export const rocket: Rocket = {
     angleVelocity: 0,
     centerOfGravity: new Vector(0, 0),
     position: new Vector(0, 0),
-    velocity: new Vector(0, -10),
+    velocity: new Vector(0, -20),
     bodyParts: {
         heart: createPart(new Vector(0, 0), 0, "rocket", "Battery")
     },

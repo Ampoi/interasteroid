@@ -1,10 +1,9 @@
 import p5, { Vector } from "p5"
 import { Part, PartName } from "./part"
 import { generateUID } from "./uid"
-import { computed, ref } from "vue"
 import { createPart } from "./parts"
 import { rocket } from "./rocket"
-import { partSize } from "../engine/main"
+import { partSize } from "../draw/main"
 
 export function getSamePositionParts(position: Vector): [id: string, part: Part][]{
     return Object.entries(rocket.bodyParts)
@@ -91,7 +90,3 @@ class MousePositionFromCenter {
 }
 
 export const mouseFromCenter = new MousePositionFromCenter()
-
-export const modes = ["build", "wire"] as const 
-export const modeIndex = ref(0)
-export const mode = computed(() => modes[modeIndex.value])

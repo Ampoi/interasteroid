@@ -1,6 +1,6 @@
 import p5 from "p5"
 import { Part } from "../part"
-import { partSize } from "../../engine/main"
+import { partSize } from "../../draw/main"
 
 export class Block extends Part {
     readonly name = "Block"

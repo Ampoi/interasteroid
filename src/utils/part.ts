@@ -1,6 +1,6 @@
 import p5, { Vector } from "p5"
 import { Port, getPortPosition } from "./port"
-import { partEnergyCircleSize, partSize } from "../engine/main"
+import { partEnergyCircleSize, partSize } from "../draw/main"
 
 export const partNames = ["Block", "Motor", "Engine", "Battery", "Button"] as const
 export type PartName = typeof partNames[number]
@@ -62,6 +62,7 @@ export abstract class Part {
         p.textAlign(p.CENTER)
         p.noStroke()
         p.fill(0)
+        p.textSize(16)
         p.text(this.layer, 0, partSize * 0.1)
 
         p.rotate(-angle)

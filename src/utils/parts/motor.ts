@@ -1,7 +1,7 @@
 import p5, { Vector } from "p5";
 import { Part } from "../part";
 import { Port } from "../port";
-import { partSize } from "../../engine/main";
+import { partSize } from "../../draw/main";
 
 export class Motor extends Part {
     readonly name = "Motor"
