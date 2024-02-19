@@ -72,12 +72,14 @@ export class Wire {
         )
 
         if( transportEnergy > 0 ){
-            from.useBattery(transportEnergy)
-            to.chargeBattery(transportEnergy)
-            this.transporting = true
-        }else{
-            this.transporting = false
+            const usedEnergy = from.useBattery(transportEnergy)
+            if( usedEnergy > 0 ){
+                to.chargeBattery(transportEnergy)
+                this.transporting = true
+                return
+            }
         }
+        this.transporting = false
     }
 }
 

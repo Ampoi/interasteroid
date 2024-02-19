@@ -49,9 +49,9 @@ new p5((p: p5) => {
         p.textSize(16)
         const constructedParts = constructParts()
         
-        Object.values(constructedParts).forEach(({ position, angle, part }) => {
+        Object.entries(constructedParts).forEach(([id, { position, angle, part }]) => {
             part.draw(p, position, angle)
-            if( part.action ) part.action()
+            if( part.action ) part.action(p, id)
         })
         Object.values(rocket.wires).forEach((wire) => {
             wire.draw(p, constructedParts)
@@ -61,9 +61,13 @@ new p5((p: p5) => {
         p.translate(rocket.position.x*partSize, rocket.position.y*partSize)
         p.rotate(rocket.angle)
 
-        p.fill(0, 255, 255, 80)
-        p.noStroke()
-        p.square(mouseFromCenter.partPosition.x * partSize, mouseFromCenter.partPosition.y * partSize, partSize)
+        p.noFill()
+        p.strokeWeight(2)
+        p.stroke(255, 100)
+        p.square(
+            mouseFromCenter.partPosition.x * partSize, mouseFromCenter.partPosition.y * partSize, partSize,
+            partSize/5, partSize/5, partSize/5, partSize/5
+        )
 
         rocket.position.add(rocket.velocity)
         rocket.angle += rocket.angleVelocity

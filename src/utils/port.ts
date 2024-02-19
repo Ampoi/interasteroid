@@ -15,13 +15,13 @@ export class Port {
     constructor(
         public readonly battery: { now: number, max: number },
         chargeCustomFunc?: (_charge: Port["_charge"], energy: number) => void,
-        useCustomFunc?: (_use: Port["_use"], energy: number) => void
+        useCustomFunc?: (_use: Port["_use"], energy: number) => number
     ){
         if( chargeCustomFunc ) this.chargeBattery = ( energy: number ) => chargeCustomFunc(this._charge, energy)
         if( useCustomFunc ) this.useBattery = ( energy: number ) => useCustomFunc(this._use, energy)
     }
 
-    private _charge(energy: number){
+    private readonly _charge = (energy: number) => {
         if( !this.battery ) throw new Error("バッテリーが存在しないので充電できません！")
         const newBattery = this.battery.now + energy
         this.battery.now = newBattery > this.battery.max ? this.battery.max : newBattery
@@ -32,13 +32,19 @@ export class Port {
         this._charge(energy)
     }
 
-    private _use(energy: number){
+    private readonly _use = (energy: number) => {
         if( !this.battery ) throw new Error("バッテリーが存在しないので使用できません！")
-        const newBattery = this.battery.now - energy
-        this.battery.now = newBattery < 0 ? 0 : newBattery
+        if( this.battery.now < energy ){
+            const remainEnergy = this.battery.now
+            this.battery.now = 0
+            return remainEnergy
+        }else{
+            this.battery.now -= energy
+            return energy
+        }
     }
 
     public useBattery(energy: number){
-        this._use(energy)
+        return this._use(energy)
     }
 }
