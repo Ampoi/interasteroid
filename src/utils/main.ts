@@ -1,7 +1,8 @@
-import { Vector } from "p5"
+import p5, { Vector } from "p5"
 import { Part, PartName, createPart } from "./part"
 import { generateUID } from "./uid"
 import { Wire } from "./wire"
+import { computed, ref } from "vue"
 
 export const rocket: {
     angle: number
@@ -91,3 +92,24 @@ export function deleteClickedPart(event: MouseEvent, position: Vector){
 }
 
 export const energyColor = "#0ac729"
+
+const size = 40
+
+class MousePositionFromCenter {
+    readonly position = new Vector()
+    readonly partPosition = new Vector()
+    
+    updatePosition(p: p5){
+        this.position.x = p.mouseX - p.windowWidth / 2
+        this.position.y = p.mouseY - p.windowHeight / 2
+
+        this.partPosition.x = Math.round(this.position.x  / size)
+        this.partPosition.y = Math.round(this.position.y  / size)
+    }
+}
+
+export const mouseFromCenter = new MousePositionFromCenter()
+
+export const modes = ["build", "wire"] as const 
+export const modeIndex = ref(0)
+export const mode = computed(() => modes[modeIndex.value])

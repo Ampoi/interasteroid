@@ -4,6 +4,16 @@ export const partNames = ["Block", "Motor", "Engine", "Battery", "Button"] as co
 export type PartName = typeof partNames[number]
 
 const size = 40
+const outerCircleSize = size * 0.85
+const innerCircleSize = size * 0.7
+
+export const getPortPosition = (portIndex: number, portAmount: number) => {
+    const reversedPortPosition = Vector.fromAngle((portIndex / portAmount + 1/4) * Math.PI * 2).mult(( outerCircleSize + innerCircleSize ) / 4)
+    return new Vector(
+        reversedPortPosition.x,
+        -reversedPortPosition.y
+    )
+}
 
 class Port {
     powerIsOn = false
@@ -61,24 +71,22 @@ export abstract class Part {
         this.customDrawFunc(p)
 
         if( this.energy ){
-            const outerCircleSize = size * 0.85
             p.noStroke()
             p.fill(150)
             p.circle(0, 0, outerCircleSize)
             p.fill("#0ac729")
             p.arc(0, 0, outerCircleSize, outerCircleSize, -Math.PI/2, Math.PI * (this.energy.battery.now / this.energy.battery.max * 2 - 1/2));
 
-            const innerCircleSize = size * 0.7
             p.fill(255)
             p.circle(0, 0, innerCircleSize)
 
             const ports = this.energy.ports
             ports.forEach((_, i) => {
-                const portPosition = Vector.fromAngle((i / ports.length + 90/360) * Math.PI * 2).mult(( outerCircleSize + innerCircleSize ) / 4)
+                const portPosition = getPortPosition(i, ports.length)
                 p.stroke("#000000")
                 p.strokeWeight(1.5)
                 p.fill("#404040")
-                p.circle(portPosition.x, -portPosition.y, size * 0.2)
+                p.circle(portPosition.x, portPosition.y, size * 0.2) //TODO:こいつのせいで多分全部おかしくなってる
             })
         }
 
