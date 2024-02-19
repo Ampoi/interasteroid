@@ -8,15 +8,14 @@ import { computed, ref } from "vue";
 
 import { partNames } from "./utils/part"
 import { addPart, deleteClickedPart, mouseFromCenter, mode, modeIndex, modes } from "./utils/main"
-import { rocket } from "./utils/main"
+import { rocket } from "./utils/rocket"
 import { StarLayer } from "./utils/stars"
 import { constructParts } from "./utils/constructParts"
 import { createWire } from "./utils/wire"
+import { partSize } from "./utils/draw";
 
 const selectedPartIndex = ref(0)
 const selectedPart = computed(() => partNames[selectedPartIndex.value])
-
-const size = 40
 
 new p5((p: p5) => {
     const starLayers= [
@@ -45,7 +44,7 @@ new p5((p: p5) => {
             starLayer.draw(p)
         })
 
-        p.translate(-rocket.position.x*size, -rocket.position.y*size) //ロケットの中身を0, 0にする
+        p.translate(-rocket.position.x*partSize, -rocket.position.y*partSize) //ロケットの中身を0, 0にする
 
         p.textSize(16)
         const constructedParts = constructParts()
@@ -59,12 +58,12 @@ new p5((p: p5) => {
             wire.energize()
         })
 
-        p.translate(rocket.position.x*size, rocket.position.y*size)
+        p.translate(rocket.position.x*partSize, rocket.position.y*partSize)
         p.rotate(rocket.angle)
 
         p.fill(0, 255, 255, 80)
         p.noStroke()
-        p.square(mouseFromCenter.partPosition.x * size, mouseFromCenter.partPosition.y * size, size)
+        p.square(mouseFromCenter.partPosition.x * partSize, mouseFromCenter.partPosition.y * partSize, partSize)
 
         rocket.position.add(rocket.velocity)
         rocket.angle += rocket.angleVelocity

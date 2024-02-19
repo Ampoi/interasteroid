@@ -1,26 +1,10 @@
 import p5, { Vector } from "p5"
-import { Part, PartName, createPart } from "./part"
+import { Part, PartName } from "./part"
 import { generateUID } from "./uid"
-import { Wire } from "./wire"
 import { computed, ref } from "vue"
-
-export const rocket: {
-    angle: number
-    angleVelocity: number
-    position: Vector
-    velocity: Vector
-    bodyParts: { [key: string]: Part }
-    wires: { [key: string]: Wire }
-} = {
-    angle: 0,
-    angleVelocity: 0,
-    position: new Vector(0, 0),
-    velocity: new Vector(10, -10),
-    bodyParts: {
-        heart: createPart(new Vector(0, 0), 0, "rocket", "Battery")
-    },
-    wires: {}
-}
+import { createPart } from "./parts"
+import { rocket } from "./rocket"
+import { partSize } from "./draw"
 
 export function getSamePositionParts(position: Vector): [id: string, part: Part][]{
     return Object.entries(rocket.bodyParts)
@@ -93,8 +77,6 @@ export function deleteClickedPart(event: MouseEvent, position: Vector){
 
 export const energyColor = "#0ac729"
 
-const size = 40
-
 class MousePositionFromCenter {
     readonly position = new Vector()
     readonly partPosition = new Vector()
@@ -103,8 +85,8 @@ class MousePositionFromCenter {
         this.position.x = p.mouseX - p.windowWidth / 2
         this.position.y = p.mouseY - p.windowHeight / 2
 
-        this.partPosition.x = Math.round(this.position.x  / size)
-        this.partPosition.y = Math.round(this.position.y  / size)
+        this.partPosition.x = Math.round(this.position.x  / partSize)
+        this.partPosition.y = Math.round(this.position.y  / partSize)
     }
 }
 

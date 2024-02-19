@@ -1,5 +1,5 @@
 import p5, { Vector } from "p5"
-import { rocket } from "./main"
+import { rocket } from "./rocket"
 
 const rocketSize = 40
 

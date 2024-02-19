@@ -1,8 +1,12 @@
 import p5, { Vector } from "p5"
-import { Part, getPortPosition } from "./part"
-import { energyColor, mode, mouseFromCenter, rocket } from "./main"
+import { Part } from "./part"
+import { energyColor, mode, mouseFromCenter } from "./main"
+import { rocket } from "./rocket"
+import { generateUID } from "./uid"
+import { constructParts } from "./constructParts"
+import { getPortPosition } from "./port"
+import { partSize } from "./draw"
 
-const size = 40
 type Port = {
     partID: string
     portIndex: number
@@ -19,31 +23,31 @@ export class Wire {
     private drawLine(p: p5, from: Vector, to: Vector, weight: number, color: p5.Color){
         p.strokeWeight(weight)
         p.stroke(color)
-        p.line(from.x*size, from.y*size, to.x*size, to.y*size)
+        p.line(from.x*partSize, from.y*partSize, to.x*partSize, to.y*partSize)
     }
 
     draw(p: p5, constructedParts: { [key: string]: { position: Vector, angle: number, part: Part } }){
         const fromPartPosition = constructedParts[this.from.partID].position
         const fromPartPortLength = rocket.bodyParts[this.from.partID].energy?.ports.length
         if( !fromPartPortLength ) throw new Error("接続されている転送元パーツはバッテリーを使用していません！")
-        const from = Vector.add(Vector.mult(getPortPosition(this.from.portIndex, fromPartPortLength), 1/size), fromPartPosition)
+        const from = Vector.add(Vector.mult(getPortPosition(this.from.portIndex, fromPartPortLength), 1/partSize), fromPartPosition)
     
         const toPartPosition = constructedParts[this.to.partID].position
         const toPartPortLength = rocket.bodyParts[this.from.partID].energy?.ports.length
         if( !toPartPortLength ) throw new Error("接続されている転送先パーツはバッテリーを使用していません！")
-        const to = Vector.add(Vector.mult(getPortPosition(this.to.portIndex, toPartPortLength), 1/size), toPartPosition)
+        const to = Vector.add(Vector.mult(getPortPosition(this.to.portIndex, toPartPortLength), 1/partSize), toPartPosition)
 
         this.drawLine(p, from, to, 6, p.color(200))
         this.drawLine(p, from, to, 4, this.transporting ? p.color(energyColor) :p.color(50))
         
         //水色→オレンジ
-        const markVector = Vector.setMag(Vector.sub(to, from), size*0.5)
+        const markVector = Vector.setMag(Vector.sub(to, from), partSize*0.5)
         
         p.noStroke()
         p.fill("#00bbff")
-        p.circle(from.x * size + markVector.x, from.y * size + markVector.y, 6)
+        p.circle(from.x * partSize + markVector.x, from.y * partSize + markVector.y, 6)
         p.fill("#ff9500")
-        p.circle(to.x * size - markVector.x, to.y * size - markVector.y, 6)
+        p.circle(to.x * partSize - markVector.x, to.y * partSize - markVector.y, 6)
     }
 
     transporting = false
@@ -77,9 +81,6 @@ export class Wire {
     }
 }
 
-import { generateUID } from "./uid"
-import { constructParts } from "./constructParts"
-
 let wireFrom: {
     partID: string
     portIndex: number
@@ -101,7 +102,7 @@ function getReachedPort(mousePosition: Vector){
         const { ports } = part.energy
 
         const availablePorts = ports.map((_, portIndex) => {
-            const portPosition = getPortPosition(portIndex, ports.length).rotate(angle).add(Vector.sub(position, rocket.position).mult(size))
+            const portPosition = getPortPosition(portIndex, ports.length).rotate(angle).add(Vector.sub(position, rocket.position).mult(partSize))
             const yRevertedPortPosition = new Vector(portPosition.x, portPosition.y)
             const distanceBetweenMouse = Vector.dist(mousePosition, yRevertedPortPosition)
             if(distanceBetweenMouse < range){

@@ -1,5 +1,5 @@
 import { Vector } from "p5"
-import { rocket } from "./main"
+import { rocket } from "./rocket"
 import { Part } from "./part"
 
 type ConstructedParts = {
