@@ -3,7 +3,7 @@ import { Part, PartName } from "./part"
 import { generateUID } from "./uid"
 import { createPart } from "./parts"
 import { rocket } from "./rocket"
-import { partSize } from "../draw/main"
+import { partSize } from "../draw/config"
 
 export function getSamePositionParts(position: Vector): [id: string, part: Part][]{
     return Object.entries(rocket.bodyParts)

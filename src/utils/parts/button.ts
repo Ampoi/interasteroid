@@ -1,7 +1,7 @@
 import p5, { Vector } from "p5";
 import { Part } from "../part";
 import { Port } from "../port";
-import { partSize } from "../../draw/main";
+import { partSize } from "../../draw/config";
 import { getSamePositionParts, mouseFromCenter } from "../main";
 
 export class Button extends Part {

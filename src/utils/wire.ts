@@ -5,7 +5,7 @@ import { rocket } from "./rocket"
 import { generateUID } from "./uid"
 import { constructParts } from "./constructParts"
 import { getPortPosition } from "./port"
-import { partSize } from "../draw/main"
+import { partSize } from "../draw/config"
 import { mode } from "../hooks/switchMode"
 
 type Port = {

@@ -1,6 +1,6 @@
 import p5, { Vector } from "p5"
 import { mouseFromCenter } from "../utils/main"
-import { partSize } from "./main"
+import { partSize } from "./config"
 
 export const drawCursor = (p: p5) => {
     p.translate(Vector.mult(mouseFromCenter.partPosition, partSize))

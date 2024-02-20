@@ -1,5 +1,5 @@
 import { Vector } from "p5"
-import { partEnergyCircleSize } from "../draw/main"
+import { partEnergyCircleSize } from "../draw/config"
 
 export const getPortPosition = (portIndex: number, portAmount: number) => {
     const reversedPortPosition = Vector.fromAngle((portIndex / portAmount + 1/4) * Math.PI * 2).mult(( partEnergyCircleSize.inner + partEnergyCircleSize.outer ) / 4)
