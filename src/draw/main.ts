@@ -2,7 +2,6 @@ import p5, { Vector } from "p5"
 import { StarLayer } from "../utils/stars"
 import { startGame } from "../core/main"
 import { rocket } from "../utils/rocket"
-import { constructParts } from "../utils/constructParts"
 import { drawCursor } from "./cursor"
 import { addPart, deleteClickedPart, mouseFromCenter } from "../utils/main"
 import { createWire } from "../utils/wire"
@@ -41,18 +40,18 @@ export const createDrawer = () => new p5((p: p5) => {
 
         p.translate(Vector.mult(rocket.position, -partSize))
 
-        const constructedParts = constructParts()
+        const { parts, centerOfGravity } = rocket.constructed
         
-        Object.entries(constructedParts).forEach(([_id, { position, angle, part }]) => {
+        Object.entries(parts).forEach(([_id, { position, angle, part }]) => {
             part.draw(p, position, angle)
         })
         Object.values(rocket.wires).forEach((wire) => {
-            wire.draw(p, constructedParts)
+            wire.draw(p, parts)
         })
 
         p.translate(Vector.mult(rocket.position, partSize))
 
-        p.translate(Vector.mult(rocket.centerOfGravity, partSize))
+        p.translate(Vector.mult(centerOfGravity, partSize))
 
         const yellow = p.color(244, 214, 33)
         const black = p.color(0)
@@ -65,7 +64,7 @@ export const createDrawer = () => new p5((p: p5) => {
             p.arc(0, 0, size, size, 0 + offset, Math.PI/2 + offset)
         }
 
-        p.translate(Vector.mult(rocket.centerOfGravity, -partSize))
+        p.translate(Vector.mult(centerOfGravity, -partSize))
 
         p.rotate(rocket.angle)
 

@@ -2,6 +2,7 @@ import { Vector } from "p5"
 import { Wire } from "./wire"
 import { Part } from "./part"
 import { createPart } from "./parts"
+import { constructParts } from "../core/constructParts"
 
 class Rocket {
     readonly position = new Vector(0, 0)
@@ -20,14 +21,21 @@ class Rocket {
     angle = 0
     angleVelocity = 0
 
-    get centerOfGravity(){
-        const tmp = new Vector(0, 0)
-        Object.values(this.bodyParts).forEach((part) => {
-            tmp.add(part.position)
-        })
-        tmp.mult(1 / Object.keys(this.bodyParts).length)
-        return tmp
+    get constructed(){
+        return {
+            parts: constructParts(this),
+            get centerOfGravity(){
+                const tmp = new Vector(0, 0)
+                Object.values(this.parts).forEach((part) => {
+                    tmp.add(part.position)
+                })
+                tmp.mult(1 / Object.keys(this.parts).length)
+                return tmp
+            }
+        } as const
     }
 }
 
 export const rocket = new Rocket()
+
+export { type Rocket }

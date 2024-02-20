@@ -1,6 +1,6 @@
 import { Vector } from "p5"
-import { rocket } from "./rocket"
-import { Part } from "./part"
+import { Part } from "../utils/part"
+import { Rocket, rocket } from "../utils/rocket"
 
 type ConstructedParts = {
     [key: string]: {
@@ -36,7 +36,7 @@ function constructConnectedParts(parentPosition: Vector, parentAngle: number, pa
     })
 }
 
-export function constructParts(){
+export function constructParts(rocket: Rocket){
     const constructedParts: ConstructedParts = {}
     constructConnectedParts(rocket.position, rocket.angle, "heart", rocket.bodyParts.heart, constructedParts)
 

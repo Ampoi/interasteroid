@@ -3,7 +3,6 @@ import { Part } from "./part"
 import { energyColor, mouseFromCenter } from "./main"
 import { rocket } from "./rocket"
 import { generateUID } from "./uid"
-import { constructParts } from "./constructParts"
 import { getPortPosition } from "./port"
 import { partSize } from "../draw/config"
 import { mode } from "../hooks/switchMode"
@@ -99,7 +98,7 @@ function getReachedPort(mousePosition: Vector){
         distanceBetweenMouse: number
     }
 
-    const constructedParts = constructParts() //TODO:位置座標に直されたパーツ群のクラス化
+    const constructedParts = rocket.constructed.parts
     const nearestAvailablePort = Object.entries(constructedParts).map(([ partID, { part, position, angle } ]) => {
         if( !part.energy ) return
         const { ports } = part.energy
