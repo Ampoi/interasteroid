@@ -17,7 +17,7 @@ export abstract class Part {
     } | undefined
     
     abstract customDrawFunc(p: p5): void
-    abstract readonly action?: (p: p5, id: string) => void
+    abstract readonly action?: (id: string) => void
 
     readonly position: Vector
 

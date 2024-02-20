@@ -40,7 +40,7 @@ export class Button extends Part {
         )
     }
 
-    action = (_: p5, myID: string) => {
+    action = (myID: string) => {
         const me = getSamePositionParts(mouseFromCenter.partPosition).find(([id]) => myID == id)
         this.isPressed = !!me
     }
